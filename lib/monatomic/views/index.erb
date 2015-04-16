@@ -1,0 +1,18 @@
+<table class="table">
+<thead>
+  <tr>
+    <% @fields.each do |field| %>
+    <th><%= field.options[:display_name] %></th>
+    <% end %>
+  </tr>
+  <% @resources.each do |resource| %>
+</thead>
+<tbody>
+  <tr>
+    <% @fields.each do |field| %>
+      <th><%= present(resource, field) %></th>
+    <% end %>
+  </tr>
+  <% end %>
+</tbody>
+</table>

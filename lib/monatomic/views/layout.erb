@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Application</title>
+<link href="<%= stylesheet_path "application" %>" rel="stylesheet">
+<script src="<%= javascript_path "application" %>"></script>
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/"><%= t "Project name" %></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a>Welcome, <%= current_user.name %></a></li>
+        <li><a href="/?setting=1"><%= t "Settings" %></a></li>
+        <li><a href="/?logout=1"><%= t "Log out" %></a></li>
+      </ul>
+      <form class="navbar-form navbar-right">
+        <input type="text" class="form-control" placeholder="Search...">
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-3 col-md-2 sidebar">
+      <ul class="nav nav-sidebar">
+        <% Monatomic::Model.subclasses.each do |subclass| %>
+        <li class="<%= 'active' if @model == subclass %>"><a href="/<%= subclass.name.tableize %>"><%= subclass.display_name %></a></li>
+        <% end %>
+      </ul>
+    </div>
+    <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+      <%= yield %>
+      <pre><%= h current_user.to_yaml %></pre>
+    </div>
+  </div>
+</div>
