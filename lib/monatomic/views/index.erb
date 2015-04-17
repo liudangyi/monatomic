@@ -4,14 +4,24 @@
     <% @fields.each do |field| %>
     <th><%= field.options[:display_name] %></th>
     <% end %>
+    <th><%= t "Actions" %></th>
   </tr>
-  <% @resources.each do |resource| %>
 </thead>
 <tbody>
+  <% @resources.each do |resource| %>
   <tr>
     <% @fields.each do |field| %>
-      <th><%= present(resource, field) %></th>
+      <td><%= present(resource, field) %></td>
     <% end %>
+    <td>
+      <a class="label label-primary" href="<%= model_path resource.id %>"><%= t "Show" %></a>
+      <% if resource.writable? current_user %>
+      <a class="label label-warning" href="<%= model_path resource.id, "edit" %>"><%= t "Edit" %></a>
+      <% end %>
+      <% if resource.deletable? current_user %>
+      <a class="label label-danger" href="<%= model_path resource.id, "delete" %>" data-method="post"><%= t "Delete" %></a>
+      <% end %>
+    </td>
   </tr>
   <% end %>
 </tbody>

@@ -17,9 +17,9 @@
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav navbar-right">
-        <li><a>Welcome, <%= current_user.name %></a></li>
-        <li><a href="/?setting=1"><%= t "Settings" %></a></li>
-        <li><a href="/?logout=1"><%= t "Log out" %></a></li>
+        <li><a><%= t "Welcome" %>, <%= current_user.name %></a></li>
+        <li><a href="/users/<%= current_user.id %>/edit"><%= t "Settings" %></a></li>
+        <li><a href="/_logout"><%= t "Log out" %></a></li>
       </ul>
       <form class="navbar-form navbar-right">
         <input type="text" class="form-control" placeholder="Search...">
@@ -33,6 +33,7 @@
     <div class="col-sm-3 col-md-2 sidebar">
       <ul class="nav nav-sidebar">
         <% Monatomic::Model.subclasses.each do |subclass| %>
+        <% next if subclass.for(current_user).nil? %>
         <li class="<%= 'active' if @model == subclass %>"><a href="/<%= subclass.name.tableize %>"><%= subclass.display_name %></a></li>
         <% end %>
       </ul>

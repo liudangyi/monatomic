@@ -1,6 +1,5 @@
 Monatomic::Application.class_eval do
   get "/" do
-    session.delete(:uid) if params[:logout]
     if current_user
       erb :home
     else
@@ -19,52 +18,67 @@ Monatomic::Application.class_eval do
     redirect "/"
   end
 
-  before "/:resources" do
-    redirect "/" unless current_user
-    @model = params[:resources].classify.constantize
-    @fields = @model.fields_for(current_user)
-  end
-
-  before "/:resources/*" do
-    redirect "/" unless current_user
-    @model = params[:resources].classify.constantize
-    @fields = @model.fields_for(current_user)
+  get "_logout" do
+    session.delete :uid
+    redirect "/"
   end
 
   # index
   get "/:resources" do
-    @resources = @model.all
+    require_user_and_prepare_resources
+    @fields = @model.fields_for(current_user)
     erb :index
   end
 
   # create
   post "/:resources" do
+    require_user_and_prepare_resources
     params[:resources]
   end
 
   # new
   get "/:resources/new" do
+    require_user_and_prepare_resources
     params[:resources]
   end
 
   # show
   get "/:resources/:id" do
-    params.inspect
+    require_user_and_prepare_resources
+    @fields = @model.fields_for(current_user)
+    erb :show
   end
 
   # update
   # We use post for best compatibility
   post "/:resources/:id" do
+    require_user_and_prepare_resources
     params.inspect
   end
 
   # edit
   get "/:resources/:id/edit" do
+    require_user_and_prepare_resources
+    @fields = @model.fields_for(current_user, :writable)
+    erb :edit
+  end
+
+  # delete
+  post "/:resources/:id/delete" do
+    require_user_and_prepare_resources
     params.inspect
   end
 
-  # destroy
-  post "/:resources/:id/destroy" do
-    params.inspect
+  def require_user_and_prepare_resources
+    redirect "/" unless current_user
+    return if params[:resources][0] == "_"
+    begin
+      @model = params[:resources].classify.constantize
+    rescue NameError
+    end
+    @resources = @model && @model.for(current_user)
+    halt 403 if @resources.nil?
+    return if params[:id].blank?
+    @resource = @resources.find(params[:id])
   end
 end

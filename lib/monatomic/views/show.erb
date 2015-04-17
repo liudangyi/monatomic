@@ -1,0 +1,12 @@
+<ol class="breadcrumb">
+  <li><a href="<%= model_path %>"><%= @model.display_name %></a></li>
+  <li class="active"><%= @resource.represent_name %></li>
+</ol>
+<table class="table">
+<% @fields.each do |field| %>
+  <tr>
+    <th class="col-sm-2" style="text-align: right; padding-right: 20px;"><%= field.options[:display_name] %></th>
+    <td><%= present @resource, field %></td>
+  </tr>
+<% end %>
+</table>

@@ -13,15 +13,16 @@ module Monatomic
     end
 
     def present resource, field
-      value = resource[field.name]
-      case field.options[:display_type]
-      when :string
-        h value
-      when :tags
-        value.map { |e| "<span class='label label-primary'>#{h e}</span>" }.join " "
+      if resource.readable? current_user, field
+        value = resource[field.name]
+        erb :"templates/#{field.options[:display_type]}", locals: { value: value }
       else
-        "Unkown type #{field.options[:display_type]}"
+        t "(Hidden)"
       end
+    end
+
+    def model_path(*others)
+      "/" + [@model.name.tableize, *others].join("/")
     end
   end
 end

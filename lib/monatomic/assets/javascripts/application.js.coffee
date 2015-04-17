@@ -1,4 +1,5 @@
 #= require jquery-2.1.3.min
+#= require jquery_ujs
 #= require bootstrap/affix
 #= require bootstrap/alert
 #= require bootstrap/button

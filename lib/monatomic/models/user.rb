@@ -2,12 +2,17 @@ require 'securerandom'
 require 'digest'
 
 class User < Monatomic::Model
-  display "用户"
+  set :display_name, "用户"
+  set :represent_field, -> { name + " (" + email + ")" }
 
-  field :email, type: :string, validation: [:presence, :uniqueness], display: "用户 ID"
+  set writable: -> (user) { user.is(:admin) or id == user.id }
+  set deletable: false
+
+  field :email, type: :string, validation: [:presence, :uniqueness], display: "用户 ID", writable: :admin
   field :name, type: :string, default: "未设定", display: "姓名"
-  field :encrypted_password, type: :string, writable: [], readable: []
-  field :roles, type: :tags, default: [:everyone], display: "角色"
+  field :encrypted_password, type: :string, writable: false, readable: false
+  field :password, type: :string, readable: false
+  field :roles, type: :tags, default: [:everyone], display: "角色", writable: :admin
 
   def password=(new_password)
     salt = SecureRandom.base64(6)
@@ -18,6 +23,10 @@ class User < Monatomic::Model
     return false if encrypted_password.blank?
     salt, pass = encrypted_password.split(":")
     pass == Digest::SHA256.base64digest(salt + password)
+  end
+
+  def is(role)
+    role.in? roles
   end
 
 end

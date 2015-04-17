@@ -20,9 +20,7 @@ module Monatomic
         use BetterErrors::Middleware
         BetterErrors.application_root = File.expand_path(".")
         register Sinatra::Reloader
-        Dir["**/*.rb"].each do |f|
-          also_reload f
-        end
+        Dir["**/*.rb"].each { |f| also_reload f }
       rescue LoadError
       end
     end
