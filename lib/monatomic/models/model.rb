@@ -7,17 +7,21 @@ module Monatomic
     class_attribute :acl
 
     %w[ readable writable deletable ].each do |type|
+      type = type.to_sym
+
       define_method "#{type}?" do |user, field = nil|
+        raise "You should not call readable? without a field!" if type == :readable and field == nil
         roles = self.class.acl[field ? field.name : :default]
-        roles &&= roles[type.to_sym]
-        return true if roles.blank?
-        roles.each do |i|
-          if i.is_a? Symbol
-            return true if i.in? user.roles
-          elsif i.arity == 1
-            return true if self.instance_exec(user, &i)
-          else
-            return true if self.instance_exec(&i)
+        roles &&= roles[type]
+        return field != nil if roles.blank?
+        roles.each do |k, v|
+          if k.in? user.roles
+            return true if v == true
+            if v.arity == 1
+              return true if self.instance_exec(user, &v)
+            else
+              return true if self.instance_exec(&v)
+            end
           end
         end
         false
@@ -38,9 +42,9 @@ module Monatomic
       def inherited(subclass)
         subclass.acl = Hash.new
         subclass.acl[:default] = {
-          readable: [:everyone],
-          writable: [:admin],
-          deletable: [:admin],
+          readable: { everyone: true },
+          writable: { admin: true },
+          deletable: { admin: true },
         }
         super
       end
@@ -100,21 +104,24 @@ module Monatomic
         acl[name][type] =
           case roles
           when true
-            [:everyone]
+            { everyone: true }
           when false
-            []
-          when String
-            [roles.to_sym]
-          when Proc, Symbol
-            [roles]
-          when Array # [:role1, :role2, -> { ... } ]
-            roles.map do |e|
-              if e.is_a? String
-                e.to_sym
-              elsif e.is_a? Symbol or e.is_a? Proc
-                e
+            {}
+          when String, Symbol
+            { roles.to_sym => true }
+          when Proc
+            { everyone: roles }
+          when Array # [:role1, :role2]
+            raise ArgumentError unless roles.all? { |e| e.is_a? String or e.is_a? Symbol }
+            roles.map { |e| [e.to_sym, true] }.to_h
+          when Hash # { role1: true, role2: false, role3: -> { xxx } }
+            roles.select do |k, v|
+              if name == :default and type == :readable
+                v == true or v.is_a? Proc or v.is_a? Hash
+              elsif v.is_a? Hash
+                raise ArgumentError, "You can only use a Hash in model-based readable ACL setting"
               else
-                raise ArgumentError
+                v == true or v.is_a? Proc
               end
             end
           else
@@ -136,7 +143,7 @@ module Monatomic
         fields.each do |name, field|
           roles = acl[name] && acl[name][type]
           if roles
-            fs << field if roles.any? { |e| e.in?(user.roles) or e.is_a? Proc }
+            fs << field if roles.any? { |k, v| k.in?(user.roles) }
           elsif name[0] != "_"
             fs << field
           end
@@ -149,27 +156,31 @@ module Monatomic
 is not executed within a special record. You should return a mongoid query \
 or a boolean value where true means all and false means none."""
       def for(user)
-        acl[:default][:readable].each do |role|
-          if role.is_a? Symbol
-            return all if role.in? user.roles
-          else
+        queries = []
+        acl[:default][:readable].each do |k, v|
+          if k.in? user.roles
+            return all if v == true
+            if v.is_a? Hash
+              queries << v
+              next
+            end
             begin
-              query = role.call(user)
+              query = v.call(user)
             rescue NoMethodError => e
               raise NoMethodError, e.message + ". " + HELPER_MESSAGE
             end
-            if query == true
+            case query
+            when true
               return all
-            # we suppose there's only one block
-            # else user should merge them by hand
-            elsif query.is_a? Hash or query.is_a? String
-              return where(query)
-            elsif query != false
+            when Hash, String
+              queries << query
+            when false, nil
+            else
               raise ArgumentError, HELPER_MESSAGE
             end
           end
         end
-        nil
+        self.or(queries) if queries.present?
       end
 
       # General setttings

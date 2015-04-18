@@ -1,8 +1,8 @@
 require "monatomic/autorun"
 
 class Post < Monatomic::Model
-  set readable: :everyone
-  set writable: [:admin, -> { hot < 10 }]
+  set readable: true
+  set writable: -> (user) { user.is(:admin) or hot < 10 }
   set display_name: "帖子"
   set represent_field: :title
 
