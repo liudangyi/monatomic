@@ -1,4 +1,5 @@
 require "mongoid"
+require "monatomic/types"
 
 module Monatomic
   class Model
@@ -26,6 +27,7 @@ module Monatomic
         end
         false
       end
+
     end
 
     def represent_name
@@ -50,14 +52,15 @@ module Monatomic
       end
 
       def field(name, options = {})
+        return _field name, options if name.to_s[0] == "_" # built-in fields
         name = name.to_s
         type = options[:type] || :string
         type = type.to_sym if type.is_a? String
+        type_info = Types[type]
+        raise ArgumentError, "type must be one of these #{Types.keys.inspect}" if type_info.nil?
         display = name.humanize
         options.delete_if do |k, v|
           case k
-          when :type
-            true
           when :validation
             add_validation name, v
             true
@@ -71,24 +74,12 @@ module Monatomic
             false
           end
         end
-        options[:type] =
-          case type
-          when :string
-            options[:default] ||= ""
-            String
-          when :tags
-            options[:default] ||= []
-            Array
-          when :integer
-            options[:default] ||= 0
-            Integer
-          when Class
-            type
-          else
-            raise ArgumentError, "Cannot understand type #{type} for #{name}"
-          end
+        options[:default] ||= type_info[:default]
+        options[:type] = type_info[:storage] || String
         f = _field name, options
-        f.options[:display_type] = type
+        f.options[:presenter] = type_info[:presenter] || type
+        f.options[:editor] = type_info[:editor] || type
+        f.options[:parser] = type_info[:parser] || type
         f.options[:display_name] = display
       end
 
