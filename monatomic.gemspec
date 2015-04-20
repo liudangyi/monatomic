@@ -22,7 +22,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "mongoid", "~> 4.0"
   spec.add_dependency "sinatra", "~> 1.4"
   spec.add_dependency "sinatra-asset-pipeline", "~> 0.7"
-  spec.add_dependency "kaminari"
 
   spec.add_development_dependency "sinatra-contrib"
   spec.add_development_dependency "better_errors"

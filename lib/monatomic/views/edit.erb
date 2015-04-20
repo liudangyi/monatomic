@@ -1,10 +1,10 @@
 <ol class="breadcrumb">
-  <li><a href="<%= model_path %>"><%= @model.display_name %></a></li>
+  <li><a href="<%= model_path %>"><%= t @model %></a></li>
   <% if @resource.new_record? %>
-  <li class="active"><%= t "New" %></li>
+  <li class="active"><%= t :new %></li>
   <% else %>
   <li><a href="<%= model_path @resource.id %>"><%= @resource.display_name %></a></li>
-  <li class="active"><%= t "Edit" %></li>
+  <li class="active"><%= t :edit %></li>
   <% end %>
 </ol>
 <form class="form-horizontal" action="<%= @resource.new_record? ? model_path : model_path(@resource.id) %>" method="post">
@@ -23,7 +23,7 @@
 <% end %>
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
-      <button type="submit" class="btn btn-primary"><%= t "Submit" %></button>
+      <button type="submit" class="btn btn-primary"><%= t :submit %></button>
     </div>
   </div>
 </form>

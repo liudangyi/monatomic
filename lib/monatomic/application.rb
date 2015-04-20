@@ -1,4 +1,5 @@
-require "coffee_script"
+require "i18n"
+require "mongoid"
 require "sinatra/base"
 require "sinatra/asset_pipeline"
 require "monatomic/helper"
@@ -7,14 +8,27 @@ module Monatomic
   class Application < Sinatra::Base
     register Sinatra::AssetPipeline
 
-    set :db_name, "monatomic_cms"
-    set :common_translation, {
-      "Project name" => "Monatomic CMS",
-    }
-    set :sessions, key: "monatomic.session"
+    configure do
+      I18n.load_path += Dir[File.join(settings.root, 'locales', '*.yml')]
+      I18n.config.exception_handler = -> (exception, locale, key, options) {
+        if key.respond_to? :display_name
+          key.display_name
+        elsif key.respond_to? :name
+          key.name.humanize
+        else
+          key.to_s.humanize
+        end
+      }
+      set :app_name, "Monatomic CMS"
+      set :db_name, -> { app_name.gsub(" ", "_").downcase }
+      set :sessions, key: "monatomic.session"
+    end
 
     configure :development do
+      Moped.logger.level = 0
       begin
+        require "sass"
+        require "coffee_script"
         require "sinatra/reloader"
         require "better_errors"
         use BetterErrors::Middleware
@@ -28,7 +42,6 @@ module Monatomic
     helpers Monatomic::Helper
 
     def self.connect!
-      Moped.logger.level = 0
       Mongoid.configure.connect_to(db_name)
     end
   end

@@ -63,7 +63,7 @@ module Monatomic
         type = type.to_sym if type.is_a? String
         type_info = Types[type]
         raise ArgumentError, "type must be one of these #{Types.keys.inspect}" if type_info.nil?
-        display = name.humanize
+        display = nil
         options.delete_if do |k, v|
           case k
           when :validation
@@ -85,7 +85,7 @@ module Monatomic
         f.options[:presenter] = type_info[:presenter] || type
         f.options[:editor] = type_info[:editor] || type
         f.options[:parser] = type_info[:parser] || type
-        f.options[:display_name] = display
+        f.define_singleton_method(:display_name) { display } if display
       end
 
       def add_validation(name, opt)
@@ -196,12 +196,8 @@ or a boolean value where true means all and false means none."""
         define_singleton_method(option.to_sym) { value }
       end
 
-      def display_name
-        self.name
-      end
-
       def represent_field
-        :id
+        fields.keys.select { |e| e[0] != "_" }.first || :id
       end
 
     end

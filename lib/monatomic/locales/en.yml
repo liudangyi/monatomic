@@ -1,0 +1,19 @@
+en:
+  brand_name: Monatomic CMS
+  new: New
+  edit: Edit
+  delete: Delete
+  submit: Submit
+  actions: Actions
+  welcome: Welcome, %s
+  setting: Setting
+  sign_out: Sign out
+  hidden: (Hidden)
+  wrong_username_or_password: Wrong username or password
+  create_successfully: Create %s "%s" successfully
+  update_successfully: Update %s "%s" successfully
+  delete_successfully: Delete %s "%s" successfully
+  not_allowed: is not allowed to set to "%s"
+  not_authorized: You are not authorized to see this page
+  please_sign_in: Please sign in
+  sign_in: Sign in

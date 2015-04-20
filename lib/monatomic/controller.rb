@@ -9,16 +9,16 @@ Monatomic::Application.class_eval do
 
   # login
   post "/" do
-    user = User.where(email: params[:email]).first
+    user = User.where(uid: params[:uid]).first if params[:uid].present?
     if user and user.validate_password(params[:password])
       session[:uid] = user.id.to_s
     else
-      session[:flash] = "用户名/密码错误"
+      session[:flash] = t(:wrong_username_or_password)
     end
     redirect "/"
   end
 
-  get "_logout" do
+  get "/_logout" do
     session.delete :uid
     redirect "/"
   end
@@ -36,12 +36,12 @@ Monatomic::Application.class_eval do
     @resource = @resources.new
     params["data"].each do |k, v|
       unless @resource.writable? current_user, k
-        @resource.errors.add(k, "is not allowed to set to \"#{v}\"")
+        @resource.errors.add(k, t(:not_allowed) % v)
       end
     end
     @resource.assign_attributes(params["data"])
     if @resource.errors.blank? and @resource.save
-      session[:flash] = "Create %s \"%s\" successfully" % [@model.display_name, @resource.display_name]
+      session[:flash] = t(:create_successfully) % [t(@model), @resource.display_name]
       redirect model_path(@resource.id)
     else
       erb :edit
@@ -68,12 +68,12 @@ Monatomic::Application.class_eval do
     require_user_and_prepare_resources
     params["data"].each do |k, v|
       unless @resource.writable? current_user, k
-        @resource.errors.add(k, "is not allowed to set to \"#{v}\"")
+        @resource.errors.add(k, t(:not_allowed) % v)
       end
     end
     @resource.assign_attributes(params["data"])
     if @resource.errors.blank? and @resource.save
-      session[:flash] = "Update %s \"%s\" successfully" % [@model.display_name, @resource.display_name]
+      session[:flash] = t(:update_successfully) % [t(@model), @resource.display_name]
       redirect model_path(@resource.id)
     else
       erb :edit
@@ -90,7 +90,7 @@ Monatomic::Application.class_eval do
   post "/:resources/:id/delete" do
     require_user_and_prepare_resources
     @resource.destroy if @resource.deletable? current_user
-    session[:flash] = "Delete %s \"%s\" successfully" % [@model.display_name, @resource.display_name]
+    session[:flash] = t(:delete_successfully) % [t(@model), @resource.display_name]
     redirect model_path
   end
 
@@ -101,7 +101,7 @@ Monatomic::Application.class_eval do
     rescue NameError
     end
     @resources = @model && @model.for(current_user)
-    halt 403 if @resources.nil?
+    halt t(:not_authorized) if @resources.nil?
     return if params[:id].blank?
     @resource = @resources.find(params[:id])
   end

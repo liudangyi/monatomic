@@ -1,7 +1,7 @@
 module Monatomic
   module Helper
-    def t str
-      settings.common_translation[str] || str
+    def t *args
+      I18n.t(*args)
     end
 
     def h str
@@ -24,7 +24,7 @@ module Monatomic
           field: field,
           param_name: "data[#{field.name}]"
         )
-        scope.define_singleton_method(:h, &method(:h))
+        scope.define_singleton_method(:method_missing, &method(:send))
         if presenter.is_a? Symbol
           erb :"#{target}s/#{presenter}", scope: scope
         elsif presenter.is_a? String
@@ -33,12 +33,16 @@ module Monatomic
           scope.instance_exec(&presenter)
         end
       else
-        t "(Hidden)"
+        t :hidden
       end
     end
 
     def model_path(*others)
       "/" + [@model.name.tableize, *others].join("/")
+    end
+
+    def app_name
+      t :app_name, exception_handler: proc { settings.app_name }
     end
   end
 end

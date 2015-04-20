@@ -1,7 +1,7 @@
 <ol class="breadcrumb">
-  <li class="active"><%= @model.display_name %></li>
+  <li class="active"><%= t @model %></li>
   <% if @resources.new.writable? current_user %>
-  <a class="pull-right" href="<%= model_path "new" %>">+ <%= t "New" %></a>
+  <a class="pull-right" href="<%= model_path "new" %>">+ <%= t :new %></a>
   <% end %>
 </ol>
 <% if session[:flash] %>
@@ -12,9 +12,9 @@
 <thead>
   <tr>
     <% @fields.each do |field| %>
-    <th><%= field.options[:display_name] %></th>
+    <th><%= t field %></th>
     <% end %>
-    <th style="width: 150px;"><%= t "Actions" %></th>
+    <th style="width: 150px;"><%= t :actions %></th>
   </tr>
 </thead>
 <tbody>
@@ -24,12 +24,12 @@
       <td><%= present(resource, field) %></td>
     <% end %>
     <td>
-      <a class="label label-primary" href="<%= model_path resource.id %>"><%= t "Show" %></a>
+      <a class="label label-primary" href="<%= model_path resource.id %>"><%= t :show %></a>
       <% if resource.writable? current_user %>
-      <a class="label label-warning" href="<%= model_path resource.id, "edit" %>"><%= t "Edit" %></a>
+      <a class="label label-warning" href="<%= model_path resource.id, "edit" %>"><%= t :edit %></a>
       <% end %>
       <% if resource.deletable? current_user %>
-      <a class="label label-danger" href="<%= model_path resource.id, "delete" %>" data-method="post"><%= t "Delete" %></a>
+      <a class="label label-danger" href="<%= model_path resource.id, "delete" %>" data-method="post"><%= t :delete %></a>
       <% end %>
     </td>
   </tr>
