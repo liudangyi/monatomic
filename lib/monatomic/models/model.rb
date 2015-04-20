@@ -10,11 +10,16 @@ module Monatomic
     %w[ readable writable deletable ].each do |type|
       type = type.to_sym
 
-      define_method "#{type}?" do |user, field = nil|
-        raise "You should not call readable? without a field!" if type == :readable and field == nil
-        roles = self.class.acl[field ? field.name : :default]
+      define_method "#{type}?" do |user, field = :default|
+        if type == :readable and field == :default
+          raise ArgumentError, "You should not call readable? without a field!" 
+        elsif type != :readable and field != :default
+          return false if method("#{type}?").call(user, :default) == false
+        end
+        field = field.name if field.respond_to? :name
+        roles = self.class.acl[field]
         roles &&= roles[type]
-        return field != nil if roles.blank?
+        return field.to_s[0] != "_" if roles.nil?
         roles.each do |k, v|
           if k.in? user.roles
             return true if v == true
@@ -30,7 +35,7 @@ module Monatomic
 
     end
 
-    def represent_name
+    def display_name
       if self.class.represent_field.is_a? Proc
         self.instance_exec(&self.class.represent_field)
       else
@@ -44,9 +49,9 @@ module Monatomic
       def inherited(subclass)
         subclass.acl = Hash.new
         subclass.acl[:default] = {
-          readable: { everyone: true },
-          writable: { admin: true },
-          deletable: { admin: true },
+          readable: { "everyone" => true },
+          writable: { "admin" => true },
+          deletable: { "admin" => true },
         }
         super
       end
@@ -74,7 +79,7 @@ module Monatomic
             false
           end
         end
-        options[:default] ||= type_info[:default]
+        options[:default] ||= type_info[:default] || ""
         options[:type] = type_info[:storage] || String
         f = _field name, options
         f.options[:presenter] = type_info[:presenter] || type
@@ -95,18 +100,18 @@ module Monatomic
         acl[name][type] =
           case roles
           when true
-            { everyone: true }
+            { "everyone" => true }
           when false
             {}
           when String, Symbol
-            { roles.to_sym => true }
+            { roles.to_s => true }
           when Proc
-            { everyone: roles }
+            { "everyone" => roles }
           when Array # [:role1, :role2]
             raise ArgumentError unless roles.all? { |e| e.is_a? String or e.is_a? Symbol }
-            roles.map { |e| [e.to_sym, true] }.to_h
+            roles.map { |e| [e.to_s, true] }.to_h
           when Hash # { role1: true, role2: false, role3: -> { xxx } }
-            roles.select do |k, v|
+            roles.stringify_keys.select do |k, v|
               if name == :default and type == :readable
                 v == true or v.is_a? Proc or v.is_a? Hash
               elsif v.is_a? Hash
@@ -120,19 +125,18 @@ module Monatomic
           end
       end
 
-      def readable=(roles)
-        add_access_control(:readable, :default, roles)
+      %w[ readable writable deletable ].each do |type|
+        define_method "#{type}=" do |roles|
+          add_access_control(type.to_sym, :default, roles)
+        end
+        private "#{type}="
       end
 
-      def writable=(roles)
-        add_access_control(:writable, :default, roles)
-      end
-
-      # All fields possible for a user to read / write
-      def fields_for(user, type = :readable, resource = nil)
+      # All fields possible for a user to read
+      def fields_for(user)
         fs = []
         fields.each do |name, field|
-          roles = acl[name] && acl[name][type]
+          roles = acl[name] && acl[name][:readable]
           if roles
             fs << field if roles.any? { |k, v| k.in?(user.roles) }
           elsif name[0] != "_"

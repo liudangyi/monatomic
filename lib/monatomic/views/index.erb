@@ -1,10 +1,20 @@
+<ol class="breadcrumb">
+  <li class="active"><%= @model.display_name %></li>
+  <% if @resources.new.writable? current_user %>
+  <a class="pull-right" href="<%= model_path "new" %>">+ <%= t "New" %></a>
+  <% end %>
+</ol>
+<% if session[:flash] %>
+  <div class="alert alert-success"><%= h session[:flash] %></div>
+  <% session.delete(:flash) %>
+<% end %>
 <table class="table">
 <thead>
   <tr>
     <% @fields.each do |field| %>
     <th><%= field.options[:display_name] %></th>
     <% end %>
-    <th><%= t "Actions" %></th>
+    <th style="width: 150px;"><%= t "Actions" %></th>
   </tr>
 </thead>
 <tbody>

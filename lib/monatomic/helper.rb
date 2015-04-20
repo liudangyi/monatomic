@@ -13,9 +13,17 @@ module Monatomic
     end
 
     def present resource, field, target: :presenter
-      if resource.readable? current_user, field
+      ability = {
+        presenter: :readable,
+        editor: :writable
+      }[target]
+      if resource.method("#{ability}?").call current_user, field
         presenter = field.options[target]
-        scope = OpenStruct.new(value: resource[field.name], field: field)
+        scope = OpenStruct.new(
+          value: resource[field.name],
+          field: field,
+          param_name: "data[#{field.name}]"
+        )
         scope.define_singleton_method(:h, &method(:h))
         if presenter.is_a? Symbol
           erb :"#{target}s/#{presenter}", scope: scope

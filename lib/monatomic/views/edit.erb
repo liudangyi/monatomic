@@ -1,10 +1,29 @@
-<form class="form-horizontal" action="<%= model_path @resource.id %>" method="post">
-<% @fields.each do |field| %>
+<ol class="breadcrumb">
+  <li><a href="<%= model_path %>"><%= @model.display_name %></a></li>
+  <% if @resource.new_record? %>
+  <li class="active"><%= t "New" %></li>
+  <% else %>
+  <li><a href="<%= model_path @resource.id %>"><%= @resource.display_name %></a></li>
+  <li class="active"><%= t "Edit" %></li>
+  <% end %>
+</ol>
+<form class="form-horizontal" action="<%= @resource.new_record? ? model_path : model_path(@resource.id) %>" method="post">
+<% if @resource.errors.any? %>
+  <div class="alert alert-danger">
+    <p><%= @resource.errors.count %> <%= "error".pluralize(@resource.errors.count) %> prohibited this resource from being saved:</p>
+    <ul>
+    <% @resource.errors.full_messages.each do |message| %>
+      <li><%= message %></li>
+    <% end %>
+    </ul>
+  </div>
+<% end %>
+<% @model.fields.each do |name, field| %>
   <%= present @resource, field, target: :editor if @resource.writable? current_user, field %>
 <% end %>
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
-      <button type="submit" class="btn btn-default"><%= t "Submit" %></button>
+      <button type="submit" class="btn btn-primary"><%= t "Submit" %></button>
     </div>
   </div>
 </form>

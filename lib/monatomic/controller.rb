@@ -33,13 +33,26 @@ Monatomic::Application.class_eval do
   # create
   post "/:resources" do
     require_user_and_prepare_resources
-    params[:resources]
+    @resource = @resources.new
+    params["data"].each do |k, v|
+      unless @resource.writable? current_user, k
+        @resource.errors.add(k, "is not allowed to set to \"#{v}\"")
+      end
+    end
+    @resource.assign_attributes(params["data"])
+    if @resource.errors.blank? and @resource.save
+      session[:flash] = "Create %s \"%s\" successfully" % [@model.display_name, @resource.display_name]
+      redirect model_path(@resource.id)
+    else
+      erb :edit
+    end
   end
 
   # new
   get "/:resources/new" do
     require_user_and_prepare_resources
-    params[:resources]
+    @resource = @resources.new
+    erb :edit
   end
 
   # show
@@ -53,25 +66,36 @@ Monatomic::Application.class_eval do
   # We use post for best compatibility
   post "/:resources/:id" do
     require_user_and_prepare_resources
-    params.inspect
+    params["data"].each do |k, v|
+      unless @resource.writable? current_user, k
+        @resource.errors.add(k, "is not allowed to set to \"#{v}\"")
+      end
+    end
+    @resource.assign_attributes(params["data"])
+    if @resource.errors.blank? and @resource.save
+      session[:flash] = "Update %s \"%s\" successfully" % [@model.display_name, @resource.display_name]
+      redirect model_path(@resource.id)
+    else
+      erb :edit
+    end
   end
 
   # edit
   get "/:resources/:id/edit" do
     require_user_and_prepare_resources
-    @fields = @model.fields_for(current_user, :writable)
     erb :edit
   end
 
   # delete
   post "/:resources/:id/delete" do
     require_user_and_prepare_resources
-    params.inspect
+    @resource.destroy if @resource.deletable? current_user
+    session[:flash] = "Delete %s \"%s\" successfully" % [@model.display_name, @resource.display_name]
+    redirect model_path
   end
 
   def require_user_and_prepare_resources
     redirect "/" unless current_user
-    return if params[:resources][0] == "_"
     begin
       @model = params[:resources].classify.constantize
     rescue NameError

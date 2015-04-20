@@ -28,9 +28,8 @@ module Monatomic
     helpers Monatomic::Helper
 
     def self.connect!
-      Mongoid.configure do |config|
-        config.connect_to(db_name)
-      end
+      Moped.logger.level = 0
+      Mongoid.configure.connect_to(db_name)
     end
   end
 end
