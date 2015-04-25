@@ -40,9 +40,9 @@
   <div class="row">
     <div class="col-sm-3 col-md-2 sidebar">
       <ul class="nav nav-sidebar">
-        <% Monatomic::Model.subclasses.each do |subclass| %>
-        <% next if subclass.for(current_user).nil? %>
-        <li class="<%= 'active' if @model == subclass %>"><a href="/<%= subclass.name.tableize %>"><%= t subclass %></a></li>
+        <% Mongoid.models.each do |klass| %>
+        <% next if klass.for(current_user).nil? %>
+        <li class="<%= 'active' if @model == klass %>"><a href="/<%= klass.name.tableize %>"><%= t klass %></a></li>
         <% end %>
       </ul>
     </div>

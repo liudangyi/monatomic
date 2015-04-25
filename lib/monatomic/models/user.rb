@@ -1,7 +1,9 @@
 require 'securerandom'
 require 'digest'
 
-class User < Monatomic::Model
+class User
+  include Monatomic::Model
+
   set :display_name, "用户"
   set :represent_field, -> { name + " (" + uid + ")" }
 

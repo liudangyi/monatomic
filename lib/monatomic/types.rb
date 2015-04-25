@@ -17,5 +17,17 @@ module Monatomic
       storage: Integer,
       presenter: -> { value }
     },
+    date: {
+      default: -> { Date.today },
+      storage: Date,
+      presenter: -> { value }
+    },
+    time: {
+      storage: Time, 
+      presenter: -> { value.localtime.to_s(:db) }
+    },
+    object: { # relation
+      storage: Object
+    }
   }
 end

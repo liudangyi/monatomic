@@ -19,8 +19,13 @@ module Monatomic
       }[target]
       if resource.method("#{ability}?").call current_user, field
         presenter = field.options[target]
+        if field.is_a? Mongoid::Fields::ForeignKey
+          value = resource.send(field.name.sub(/_id\Z/, ""))
+        else
+          value = resource.send(field.name)
+        end
         scope = OpenStruct.new(
-          value: resource[field.name],
+          value: value,
           field: field,
           param_name: "data[#{field.name}]"
         )
@@ -31,6 +36,8 @@ module Monatomic
           erb presenter, scope: scope
         elsif presenter.is_a? Proc
           scope.instance_exec(&presenter)
+        else
+          h "Unknown presenter #{presenter} with #{field.inspect}"
         end
       else
         t :hidden

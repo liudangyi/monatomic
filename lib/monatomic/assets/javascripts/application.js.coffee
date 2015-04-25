@@ -13,3 +13,8 @@
 #= require bootstrap/tooltip
 #= require bootstrap/popover
 #= require_directory .
+
+$ ->
+  $('input[type="date"]').datepicker
+    format: 'yyyy-mm-dd'
+    orientation: "top left"

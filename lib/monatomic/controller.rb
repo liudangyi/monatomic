@@ -33,14 +33,14 @@ Monatomic::Application.class_eval do
   # create
   post "/:resources" do
     require_user_and_prepare_resources
-    @resource = @resources.new
+    @resource = @resources.new(created_by: current_user)
     params["data"].each do |k, v|
       unless @resource.writable? current_user, k
         @resource.errors.add(k, t(:not_allowed) % v)
       end
     end
     @resource.assign_attributes(params["data"])
-    if @resource.errors.blank? and @resource.save
+    if @resource.valid? and @resource.save
       session[:flash] = t(:create_successfully) % [t(@model), @resource.display_name]
       redirect model_path(@resource.id)
     else
@@ -72,7 +72,7 @@ Monatomic::Application.class_eval do
       end
     end
     @resource.assign_attributes(params["data"])
-    if @resource.errors.blank? and @resource.save
+    if @resource.valid? and @resource.save
       session[:flash] = t(:update_successfully) % [t(@model), @resource.display_name]
       redirect model_path(@resource.id)
     else
