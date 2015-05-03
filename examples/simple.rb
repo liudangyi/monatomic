@@ -1,4 +1,4 @@
-require "monatomic/autorun"
+require "monatomic"
 
 class Post
   include Monatomic::Model

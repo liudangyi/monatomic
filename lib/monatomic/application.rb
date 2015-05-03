@@ -6,7 +6,6 @@ require "monatomic/helper"
 
 module Monatomic
   class Application < Sinatra::Base
-    register Sinatra::AssetPipeline
 
     configure do
       I18n.load_path += Dir[File.join(settings.root, 'locales', '*.yml')]
@@ -23,6 +22,9 @@ module Monatomic
       set :db_name, -> { app_name.gsub(" ", "_").downcase }
       set :sessions, key: "monatomic.session"
       set :pagination_size, 25
+      set :assets_precompile, %w(application.js application.css *.png *.jpg *.svg *.eot *.ttf *.woff)
+
+      register Sinatra::AssetPipeline
     end
 
     configure :development do
