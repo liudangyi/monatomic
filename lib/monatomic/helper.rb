@@ -54,8 +54,21 @@ module Monatomic
       end
     end
 
-    def model_path(*others)
-      "/" + [@model.name.tableize, *others].join("/")
+    def path_for(*arguments)
+      options = arguments.last
+      if options.is_a? Hash
+        arguments.pop
+        options.reject! { |k, v| v.blank? }
+      else
+        options = {}
+      end
+      arguments.unshift(@model.name.tableize) if @model
+      base = "/" + arguments.join("/")
+      if format = options.delete(:format)
+        base << ".#{format}"
+      end
+      base << "?" + Rack::Utils.build_query(options) if options.present?
+      base
     end
 
     def app_name
@@ -75,7 +88,7 @@ module Monatomic
       end
       tmp = Tempfile.new(["export", ".xlsx"])
       workbook.write tmp.path
-      send_file tmp.path, filename: "#{t @model}#{Time.now.to_s(:number)}.xlsx"
+      send_file tmp.path, filename: "#{@model.display_name}#{Time.now.to_s(:number)}.xlsx"
     end
   end
 end

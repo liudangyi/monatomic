@@ -1,13 +1,13 @@
 <ol class="breadcrumb">
-  <li><a href="<%= model_path %>"><%= t @model %></a></li>
+  <li><a href="<%= path_for %>"><%= @model.display_name %></a></li>
   <% if @resource.new_record? %>
   <li class="active"><%= t :new %></li>
   <% else %>
-  <li><a href="<%= model_path @resource.id %>"><%= @resource.display_name %></a></li>
+  <li><a href="<%= path_for @resource.id %>"><%= @resource.display_name %></a></li>
   <li class="active"><%= t :edit %></li>
   <% end %>
 </ol>
-<form class="form-horizontal" action="<%= @resource.new_record? ? model_path : model_path(@resource.id) %>" method="post">
+<form class="form-horizontal" action="<%= @resource.new_record? ? path_for : path_for(@resource.id) %>" method="post">
 <% if @resource.errors.any? %>
   <div class="alert alert-danger">
     <p><%= @resource.errors.count %> <%= "error".pluralize(@resource.errors.count) %> prohibited this resource from being saved:</p>

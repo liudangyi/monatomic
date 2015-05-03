@@ -36,7 +36,7 @@ Monatomic::Application.class_exec do
     when "xlsx"
       send_xlsx
     else
-      @columns = @model.fields_for(current_user, limit: @model.represent_columns)
+      @columns = @model.fields_for(current_user, limit: @model.display_fields)
       erb :index
     end
   end
@@ -53,7 +53,7 @@ Monatomic::Application.class_exec do
     @resource.assign_attributes(params["data"])
     if @resource.valid? and @resource.save
       session[:flash] = t(:create_successfully) % [t(@model), @resource.display_name]
-      redirect model_path(@resource.id)
+      redirect path_for(@resource.id)
     else
       erb :edit
     end
@@ -90,7 +90,7 @@ Monatomic::Application.class_exec do
     @resource.assign_attributes(params["data"])
     if @resource.valid? and @resource.save
       session[:flash] = t(:update_successfully) % [t(@model), @resource.display_name]
-      redirect model_path(@resource.id)
+      redirect path_for(@resource.id)
     else
       erb :edit
     end
@@ -107,7 +107,7 @@ Monatomic::Application.class_exec do
     require_user_and_prepare_resources
     @resource.destroy if @resource.deletable? current_user
     session[:flash] = t(:delete_successfully) % [t(@model), @resource.display_name]
-    redirect model_path
+    redirect path_for
   end
 
   def require_user_and_prepare_resources
@@ -116,8 +116,14 @@ Monatomic::Application.class_exec do
       @model = params[:resources].classify.constantize
     rescue NameError
     end
-    @resources = @model && @model.for(current_user).includes(:created_by)
+    @resources = @model && @model.for(current_user)
     halt t(:not_authorized) if @resources.nil?
+    if params[:search].present?
+      regs = params[:search].split.map { |e| /#{Regexp.escape(e)}/i }
+      query = @model.search_fields.map { |e| {"$and" => regs.map { |f| {e => f} }}}
+      @resources = @resources.and("$or" => query)
+    end
+    @resources = @resources.includes(:created_by)
     return if params[:id].blank?
     @resource = @resources.find(params[:id])
   end

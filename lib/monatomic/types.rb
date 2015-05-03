@@ -28,6 +28,9 @@ module Monatomic
     },
     object: { # relation
       storage: Object
+    },
+    text: {
+      storage: String
     }
   }
 end

@@ -22,6 +22,7 @@ module Monatomic
       set :app_name, "Monatomic CMS"
       set :db_name, -> { app_name.gsub(" ", "_").downcase }
       set :sessions, key: "monatomic.session"
+      set :pagination_size, 25
     end
 
     configure :development do

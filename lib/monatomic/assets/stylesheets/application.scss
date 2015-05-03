@@ -34,7 +34,7 @@ body {
 
 /* Hide for mobile, show later */
 .sidebar {
-  display: none;
+  background-color: #F0F0F0;
 }
 @media (min-width: 768px) {
   .sidebar {
@@ -50,12 +50,14 @@ body {
     background-color: #f5f5f5;
     border-right: 1px solid #eee;
   }
+  .nav-sidebar {
+    margin-bottom: 20px;
+  }
 }
 
 /* Sidebar navigation */
 .nav-sidebar {
   margin-right: -21px; /* 20px padding + 1px border */
-  margin-bottom: 20px;
   margin-left: -20px;
 }
 .nav-sidebar > li > a {

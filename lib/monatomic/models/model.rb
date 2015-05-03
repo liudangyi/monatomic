@@ -176,7 +176,11 @@ module Monatomic
                 next
               end
               begin
-                query = v.call(user)
+                if v.arity == 1
+                  query = v.call(user)
+                else
+                  query = v.call
+                end
               rescue NoMethodError => e
                 raise NoMethodError, e.message + ". " + HELPER_MESSAGE
               end
@@ -191,7 +195,7 @@ module Monatomic
               end
             end
           end
-          self.or(queries) if queries.present?
+          self.and("$or" => queries) if queries.present?
         end
 
         # General setttings
@@ -212,12 +216,20 @@ module Monatomic
           define_singleton_method(option.to_sym) { value }
         end
 
+        def display_name
+          to_s.humanize
+        end
+
         def represent_field
           fields.keys.select { |e| e[0] != "_" }.first || :id
         end
 
-        def represent_columns
+        def display_fields
           fields.keys.slice(3, 5)
+        end
+
+        def search_fields
+          fields.keys.slice(3, 1)
         end
 
       end

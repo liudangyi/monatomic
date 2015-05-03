@@ -1,12 +1,12 @@
 <ol class="breadcrumb">
-  <li class="active"><%= t @model %></li>
+  <li class="active"><%= @model.display_name %></li>
   <div class="pull-right">
-    <a href="<%= model_path %>.json" target="_blank"><%= t :export_json %></a>
+    <a href="<%= path_for(format: "json", search: params[:search]) %>" target="_blank"><%= t :export_json %></a>
     &nbsp;&nbsp;&nbsp;
-    <a href="<%= model_path %>.xlsx"><%= t :export_xlsx %></a>
+    <a href="<%= path_for(format: "xlsx", search: params[:search]) %>"><%= t :export_xlsx %></a>
     <% if @resources.new.writable? current_user %>
     &nbsp;&nbsp;&nbsp;
-    <a href="<%= model_path "new" %>">+ <%= t :new %></a>
+    <a href="<%= path_for "new" %>">+ <%= t :new %></a>
     <% end %>
   </div>
 </ol>
@@ -24,21 +24,46 @@
   </tr>
 </thead>
 <tbody>
-  <% @resources.each do |resource| %>
+<%
+  page = (params[:page] || 1).to_i
+  total_page = (@resources.count + settings.pagination_size - 1) / settings.pagination_size
+  pages =
+    case
+    when page < 3
+      1..(total_page < 5 ? total_page : 5)
+    when (total_page - page) < 3
+      (total_page < 5 ? 1 : total_page - 5)..total_page
+    else
+      (page - 2)..(page + 2)
+    end
+%>
+  <% @resources.skip(settings.pagination_size*(page-1)).limit(settings.pagination_size).each do |resource| %>
   <tr>
     <% @columns.each do |field| %>
       <td><%= present(resource, field) %></td>
     <% end %>
     <td>
-      <a class="label label-primary" href="<%= model_path resource.id %>"><%= t :show %></a>
+      <a class="label label-primary" href="<%= path_for resource.id %>"><%= t :show %></a>
       <% if resource.writable? current_user %>
-      <a class="label label-warning" href="<%= model_path resource.id, "edit" %>"><%= t :edit %></a>
+      <a class="label label-warning" href="<%= path_for resource.id, "edit" %>"><%= t :edit %></a>
       <% end %>
       <% if resource.deletable? current_user %>
-      <a class="label label-danger" href="<%= model_path resource.id, "delete" %>" data-method="post"><%= t :delete %></a>
+      <a class="label label-danger" href="<%= path_for resource.id, "delete" %>" data-method="post"><%= t :delete %></a>
       <% end %>
     </td>
   </tr>
   <% end %>
 </tbody>
 </table>
+
+<% if pages.count > 1 %>
+<nav class="pull-right">
+  <ul class="pagination">
+    <li><a href="<%= path_for(search: params[:search], page: 1) %>" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+    <% pages.each do |p| %>
+    <li class="<%= 'active' if p == page %>"><a href="<%= path_for(search: params[:search], page: p) %>"><%= p %></a></li>
+    <% end %>
+    <li><a href="<%= path_for(search: params[:search], page: total_page) %>" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>
+  </ul>
+</nav>
+<% end %>

@@ -1,5 +1,5 @@
 <ol class="breadcrumb">
-  <li><a href="<%= model_path %>"><%= t @model %></a></li>
+  <li><a href="<%= path_for %>"><%= @model.display_name %></a></li>
   <li class="active"><%= @resource.display_name %></li>
 </ol>
 <% if session[:flash] %>
@@ -17,10 +17,10 @@
   <th></th>
   <td>
     <% if @resource.writable? current_user %>
-    <a class="btn btn-warning" href="<%= model_path @resource.id, "edit" %>"><%= t :edit %></a>
+    <a class="btn btn-warning" href="<%= path_for @resource.id, "edit" %>"><%= t :edit %></a>
     <% end %>
     <% if @resource.deletable? current_user %>
-    <a class="btn btn-danger" href="<%= model_path @resource.id, "delete" %>" data-method="post"><%= t :delete %></a>
+    <a class="btn btn-danger" href="<%= path_for @resource.id, "delete" %>" data-method="post"><%= t :delete %></a>
     <% end %>
   </td>
 </tr>
