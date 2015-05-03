@@ -229,7 +229,7 @@ module Monatomic
         end
 
         def search_fields
-          fields.keys.slice(3, 1)
+          fields.keys.slice(4, 1)
         end
 
       end

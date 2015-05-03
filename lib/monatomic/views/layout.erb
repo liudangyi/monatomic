@@ -25,12 +25,11 @@
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav navbar-right">
-        <li><a><%= t(:welcome) % h(current_user.name) %></a></li>
-        <li><a href="/users/<%= current_user.id %>/edit"><%= t :setting %></a></li>
+        <li><a href="/users/<%= current_user.id %>/edit"><%= t(:welcome) % h(current_user.name) %></a></li>
         <li><a href="/_logout"><%= t :sign_out %></a></li>
       </ul>
       <form class="navbar-form navbar-right" method="get" action="<%= path_for %>">
-        <input type="text" class="form-control" name="search" placeholder="Search..." value="<%= h params[:search] %>">
+        <input type="text" class="form-control" name="search" placeholder="Search <%= @model.search_fields.map { |e| t @model.fields[e] }.join(", ") if @model %>" value="<%= h params[:search] %>">
       </form>
     </div>
   </div>

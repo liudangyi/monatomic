@@ -18,6 +18,7 @@ class User
   field :roles, type: :tags, default: %w[ everyone ], display: "角色", writable: :admin
 
   def password=(new_password)
+    return if new_password.blank?
     salt = SecureRandom.base64(6)
     self.encrypted_password = salt + ":" + Digest::SHA256.base64digest(salt + new_password)
   end
