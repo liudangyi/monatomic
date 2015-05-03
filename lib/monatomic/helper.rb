@@ -1,3 +1,5 @@
+require "tempfile"
+
 module Monatomic
   module Helper
     def t *args
@@ -15,8 +17,10 @@ module Monatomic
     def present resource, field, target: :presenter
       ability = {
         presenter: :readable,
-        editor: :writable
+        editor: :writable,
+        text: :readable,
       }[target]
+      raise ArgumentError if ability.nil?
       if resource.method("#{ability}?").call current_user, field
         presenter = field.options[target]
         if field.is_a? Mongoid::Fields::ForeignKey
@@ -36,6 +40,12 @@ module Monatomic
           erb presenter, scope: scope
         elsif presenter.is_a? Proc
           scope.instance_exec(&presenter)
+        elsif target == :text
+          if value.respond_to? :display_name
+            value.display_name
+          else
+            value
+          end
         else
           h "Unknown presenter #{presenter} with #{field.inspect}"
         end
@@ -50,6 +60,22 @@ module Monatomic
 
     def app_name
       t :app_name, exception_handler: proc { settings.app_name }
+    end
+
+    def send_xlsx
+      workbook = RubyXL::Workbook.new
+      worksheet = workbook[0]
+      @fields.each_with_index do |field, i|
+        worksheet.add_cell(0, i, t(field))
+      end
+      @resources.each_with_index do |res, i|
+        @fields.each_with_index do |field, j|
+          worksheet.add_cell(i+1, j, present(res, field, target: :text))
+        end
+      end
+      tmp = Tempfile.new(["export", ".xlsx"])
+      workbook.write tmp.path
+      send_file tmp.path, filename: "#{t @model}#{Time.now.to_s(:number)}.xlsx"
     end
   end
 end

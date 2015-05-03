@@ -4,8 +4,9 @@ require 'digest'
 class User
   include Monatomic::Model
 
-  set :display_name, "用户"
-  set :represent_field, -> { name + " (" + uid + ")" }
+  set display_name: "用户"
+  set represent_field: -> { name + " (" + uid + ")" }
+  set represent_columns: %w[ uid name roles created_by_id created_at ]
 
   set writable: -> (user) { user.is(:admin) or id == user.id }
   set deletable: false
@@ -28,7 +29,7 @@ class User
   end
 
   def is(role)
-    role.in? roles
+    role.to_s.in? roles
   end
 
 end

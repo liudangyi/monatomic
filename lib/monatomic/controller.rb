@@ -1,4 +1,6 @@
-Monatomic::Application.class_eval do
+require "rubyXL"
+
+Monatomic::Application.class_exec do
   get "/" do
     if current_user
       erb :home
@@ -24,10 +26,19 @@ Monatomic::Application.class_eval do
   end
 
   # index
-  get "/:resources" do
+  get "/:resources.?:format?" do
     require_user_and_prepare_resources
     @fields = @model.fields_for(current_user)
-    erb :index
+    case params[:format]
+    when "json"
+      content_type :json
+      @resources.to_json(user: current_user)
+    when "xlsx"
+      send_xlsx
+    else
+      @columns = @model.fields_for(current_user, limit: @model.represent_columns)
+      erb :index
+    end
   end
 
   # create
@@ -56,10 +67,15 @@ Monatomic::Application.class_eval do
   end
 
   # show
-  get "/:resources/:id" do
+  get "/:resources/:id.?:format?" do
     require_user_and_prepare_resources
     @fields = @model.fields_for(current_user)
-    erb :show
+    if params[:format] == "json"
+      content_type :json
+      @resource.to_json(user: current_user)
+    else
+      erb :show
+    end
   end
 
   # update
@@ -100,7 +116,7 @@ Monatomic::Application.class_eval do
       @model = params[:resources].classify.constantize
     rescue NameError
     end
-    @resources = @model && @model.for(current_user)
+    @resources = @model && @model.for(current_user).includes(:created_by)
     halt t(:not_authorized) if @resources.nil?
     return if params[:id].blank?
     @resource = @resources.find(params[:id])

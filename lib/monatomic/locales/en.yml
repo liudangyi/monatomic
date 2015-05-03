@@ -17,3 +17,5 @@ en:
   not_authorized: You are not authorized to see this page
   please_sign_in: Please sign in
   sign_in: Sign in
+  export_json: Export JSON
+  export_xlsx: Export xlsx

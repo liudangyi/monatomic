@@ -1,1 +1,3 @@
-<%= value.display_name if value %>
+<% if value %>
+<a href="/<%= value.class.name.tableize %>/<%= value.id %>"><%= value.display_name %></a>
+<% end %>

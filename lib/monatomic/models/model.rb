@@ -1,6 +1,12 @@
 require "mongoid"
 require "monatomic/types"
 
+BSON::ObjectId.class_exec do
+  def as_json(options = nil)
+    to_s
+  end
+end
+
 module Monatomic
   module Model
     extend ActiveSupport::Concern
@@ -21,7 +27,7 @@ module Monatomic
           roles = self.class.acl[field]
           roles &&= roles[type]
           return field.to_s[0] != "_" if roles.nil?
-          return roles if roles == true or roles == false
+          return false if roles == false
           roles.each do |k, v|
             if k.in? user.roles
               return v if v == true or v == false
@@ -45,6 +51,14 @@ module Monatomic
         end
       end
 
+      def as_json(user: nil)
+        if user
+          fields.keys.select { |e| readable? user, e }.map { |e| [e, self[e]] }.to_h
+        else
+          super
+        end
+      end
+
       class << self
         alias_method :_field, :field
 
@@ -61,10 +75,6 @@ module Monatomic
           }
         end
 
-        def acl=(a)
-          @acl = a
-        end
-
         def field(name, options = {})
           name = name.to_s
           type = options[:type] || :string
@@ -79,7 +89,7 @@ module Monatomic
               add_validation name, v
               true
             when :readable, :writable
-              add_access_control k, name, v
+              add_access_control name, k, v
               true
             when :display
               display = v.to_s
@@ -104,29 +114,21 @@ module Monatomic
         end
 
         # Access Control
-        def add_access_control(type, name, roles)
+        def add_access_control(name, type, roles)
           acl[name] ||= {}
           acl[name][type] =
             case roles
-            when true, false
-              roles
+            when false
+              false
             when String, Symbol
               { roles.to_s => true }
-            when Proc
+            when Proc, true
               { "everyone" => roles }
             when Array # [:role1, :role2]
               raise ArgumentError unless roles.all? { |e| e.is_a? String or e.is_a? Symbol }
               roles.map { |e| [e.to_s, true] }.to_h
             when Hash # { role1: true, role2: false, role3: -> { xxx } }
-              roles.stringify_keys.select do |k, v|
-                if name == :default and type == :readable
-                  v == true or v.is_a? Proc or v.is_a? Hash
-                elsif v.is_a? Hash
-                  raise ArgumentError, "You can only use a Hash in model-based readable ACL setting"
-                else
-                  v == true or v.is_a? Proc
-                end
-              end
+              roles.stringify_keys
             else
               raise ArgumentError
             end
@@ -134,23 +136,29 @@ module Monatomic
 
         %w[ readable writable deletable ].each do |type|
           define_method "#{type}=" do |roles|
-            add_access_control(type.to_sym, :default, roles)
+            add_access_control(:default, type.to_sym, roles)
           end
-          private "#{type}="
         end
 
         # All fields possible for a user to read
-        def fields_for(user)
-          fs = []
-          fields.each do |name, field|
+        def fields_for(user, limit: nil)
+          if limit
+            fs = limit.map { |e| fields[e.to_s] }
+          else
+            fs = fields.values
+          end
+          fs.select do |field|
+            name = field.name
             roles = acl[name] && acl[name][:readable]
-            if roles
-              fs << field if roles.any? { |k, v| k.in?(user.roles) }
-            elsif name[0] != "_"
-              fs << field
+            case roles
+            when nil
+              name[0] != "_"
+            when true
+              true
+            when Hash
+              roles.any? { |k, v| k.in?(user.roles) && v != false }
             end
           end
-          fs
         end
 
         # Get a query of readable records
@@ -159,6 +167,7 @@ module Monatomic
   or a boolean value where true means all and false means none."""
         def for(user)
           queries = []
+          return nil if acl[:default][:readable] == false
           acl[:default][:readable].each do |k, v|
             if k.in? user.roles
               return all if v == true
@@ -205,6 +214,10 @@ module Monatomic
 
         def represent_field
           fields.keys.select { |e| e[0] != "_" }.first || :id
+        end
+
+        def represent_columns
+          fields.keys.slice(3, 5)
         end
 
       end
