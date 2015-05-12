@@ -115,28 +115,35 @@ Monatomic::Application.class_exec do
   def require_user_and_prepare_resources
     redirect "/" unless current_user
     begin
-      @model = params[:resources].classify.constantize
+      @model = params[:resources].camelize.constantize
     rescue NameError
     end
     @resources = @model && @model.for(current_user)
     halt t(:not_authorized) if @resources.nil?
     if params[:search].present?
-      available_fields = @model.fields_for(current_user).map(&:name)
+      fields = @model.fields_for(current_user).map { |e| [e.name, e] }.to_h
       query = {}
       params[:search].split.each do |e|
         if e =~ /:/
           k, v = e.split(":", 2)
           query[k] ||= []
-          query[k] << /#{Regexp.escape(v)}/i
+          query[k] << v
         else
           @model.search_fields.each do |f|
             query[f.to_s] ||= []
-            query[f.to_s] << /#{Regexp.escape(e)}/i
+            query[f.to_s] << e
           end
         end
       end
       query = query.map do |k, v|
-        {"$and" => v.map { |e| {k => e} }} if k.in? available_fields
+        f = fields[k]
+        if f.nil?
+          nil
+        elsif f.type == String
+          {"$and" => v.map { |e| {k => /#{Regexp.escape(e)}/i} }}
+        else
+          { k => v.first }
+        end
       end.reject(&:nil?)
       @resources = @resources.and("$or" => query) if query.present?
     end

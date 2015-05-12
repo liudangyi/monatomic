@@ -31,19 +31,19 @@ module Monatomic
     },
     text: {},
     prompt: {
-      presenter: -> { h value }
+      presenter: -> { "<a href='#{path_for(search: "#{field.name}:#{value}")}'>#{h value}</a>" }
     },
     enumeration: {
-      presenter: -> { h value }
+      presenter: -> { "<a href='#{path_for(search: "#{field.name}:#{value}")}'>#{h value}</a>" }
     },
     number_prompt: {
       storage: Float,
-      presenter: -> { h value },
+      presenter: -> { "<a href='#{path_for(search: "#{field.name}:#{value}")}'>#{h value}</a>" },
       editor: :prompt
     },
     number_enumeration: {
       storage: Float,
-      presenter: -> { h value },
+      presenter: -> { "<a href='#{path_for(search: "#{field.name}:#{value}")}'>#{h value}</a>" },
       editor: :enumeration
     },
   }

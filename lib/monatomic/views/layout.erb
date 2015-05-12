@@ -43,7 +43,7 @@
       <ul class="nav nav-sidebar">
         <% Mongoid.models.each do |klass| %>
         <% next if klass.for(current_user).nil? %>
-        <li class="<%= 'active' if @model == klass %>"><a href="/<%= klass.name.tableize %>"><%= klass.display_name %></a></li>
+        <li class="<%= 'active' if @model == klass %>"><a href="/<%= klass.name.underscore %>"><%= klass.display_name %></a></li>
         <% end %>
       </ul>
     </div>

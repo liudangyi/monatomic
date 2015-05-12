@@ -1,3 +1,3 @@
 <% value.each do |e| %>
-<a href="<%= path_for(search: "roles:#{e}") %>" class='label label-default'><%= h e %></a>
+<a href="<%= path_for(search: "#{field.name}:#{e}") %>" class='label label-default'><%= h e %></a>
 <% end %>

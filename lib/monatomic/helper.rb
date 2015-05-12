@@ -66,7 +66,7 @@ module Monatomic
       [:sort, :search].each do |e|
         options[e] ||= params[e] if params[e]
       end
-      arguments.unshift(@model.name.tableize) if @model
+      arguments.unshift(@model.name.underscore) if @model
       base = "/" + arguments.join("/")
       if format = options.delete(:format)
         base << ".#{format}"
