@@ -18,7 +18,7 @@ module Monatomic
       ability = {
         presenter: :readable,
         editor: :writable,
-        text: :readable,
+        xlsx: :readable,
       }[target]
       raise ArgumentError if ability.nil?
       if resource.method("#{ability}?").call current_user, field
@@ -27,6 +27,13 @@ module Monatomic
           value = resource.send(field.name.sub(/_id\Z/, ""))
         else
           value = resource.send(field.name)
+        end
+        if target == :xlsx
+          if value.respond_to? :display_name
+            return value.display_name
+          else
+            return value
+          end
         end
         scope = OpenStruct.new(
           value: value,
@@ -40,12 +47,6 @@ module Monatomic
           erb presenter, scope: scope
         elsif presenter.is_a? Proc
           scope.instance_exec(&presenter)
-        elsif target == :text
-          if value.respond_to? :display_name
-            value.display_name
-          else
-            value
-          end
         else
           h "Unknown presenter #{presenter} with #{field.inspect}"
         end
@@ -80,14 +81,30 @@ module Monatomic
 
     def send_xlsx
       workbook = RubyXL::Workbook.new
+      workbook.cell_xfs << RubyXL::XF.new(num_fmt_id: 22)
+      workbook.cell_xfs << RubyXL::XF.new(num_fmt_id: 14)
       worksheet = workbook[0]
       @fields.each_with_index do |field, i|
         worksheet.add_cell(0, i, t(field))
       end
+      width = []
       @resources.each_with_index do |res, i|
         @fields.each_with_index do |field, j|
-          worksheet.add_cell(i+1, j, present(res, field, target: :text))
+          width[j] ||= []
+          v = present(res, field, target: :xlsx)
+          c = worksheet.add_cell(i+1, j, v)
+          if v.class.in? [Date, DateTime, Time]
+            c.raw_value = workbook.date_to_num(v.to_datetime).to_s
+            c.style_index = v.is_a?(Date) ? 2 : 1
+            c.datatype = nil
+            width[j] << (v.is_a?(Date) ? 8 : 12)
+          else
+            width[j] << v.to_s.length
+          end
         end
+      end
+      width.each_with_index do |ws, i|
+        worksheet.change_column_width(i, ws.max + 4)
       end
       tmp = Tempfile.new(["export", ".xlsx"])
       workbook.write tmp.path
