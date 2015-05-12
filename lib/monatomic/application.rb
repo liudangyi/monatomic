@@ -3,7 +3,6 @@ require "mongoid"
 require "sinatra/base"
 require "sinatra/asset_pipeline"
 require "monatomic/helper"
-require "sinatra/reloader"
 
 module Monatomic
   class Application < Sinatra::Base
