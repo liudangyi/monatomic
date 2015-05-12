@@ -19,5 +19,5 @@ class Post
   field :hot, type: :integer, readable: -> { hot < 15 }
   field :date, type: :date, display: "日期"
   field :body, type: :text, display: "正文"
-  field :rate, type: :number_enumeration, in: [1.1, 1.2, 3]
+  field :rate, type: :number_prompt, in: (1..5).to_a
 end
