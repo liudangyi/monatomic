@@ -3,21 +3,14 @@ require "mongoid"
 require "sinatra/base"
 require "sinatra/asset_pipeline"
 require "monatomic/helper"
+require "sinatra/reloader"
 
 module Monatomic
   class Application < Sinatra::Base
 
     configure do
       I18n.load_path += Dir[File.join(settings.root, 'locales', '*.yml')]
-      I18n.config.exception_handler = -> (exception, locale, key, options) {
-        if key.respond_to? :display_name
-          key.display_name
-        elsif key.respond_to? :name
-          key.name.humanize
-        else
-          key.to_s.humanize
-        end
-      }
+      I18n.config.exception_handler = -> (exception, locale, key, options) { key.humanize }
       set :app_name, "Monatomic CMS"
       set :db_name, -> { app_name.gsub(" ", "_").downcase }
       set :sessions, key: "monatomic.session"

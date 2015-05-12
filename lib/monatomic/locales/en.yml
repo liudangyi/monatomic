@@ -19,3 +19,6 @@ en:
   sign_in: Sign in
   export_json: Export JSON
   export_xlsx: Export xlsx
+  created_at: Created at
+  updated_at: Updated at
+  created_by_id: Created by

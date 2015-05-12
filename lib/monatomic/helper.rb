@@ -2,8 +2,14 @@ require "tempfile"
 
 module Monatomic
   module Helper
-    def t *args
-      I18n.t(*args)
+    def t s, *others
+      if s.respond_to? :display_name
+        h s.display_name
+      elsif s.respond_to? :name
+        h I18n.t s.name
+      else
+        h I18n.t s.to_s, *others
+      end
     end
 
     def h str

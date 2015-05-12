@@ -1,6 +1,11 @@
 require "rubyXL"
 
 Monatomic::Application.class_exec do
+  before do
+    locale = env["HTTP_ACCEPT_LANGUAGE"].split("-").first.to_sym
+    I18n.locale = locale if locale.in? I18n.available_locales
+  end
+
   get "/" do
     if current_user
       erb :home
