@@ -34,7 +34,12 @@ module Monatomic
       presenter: -> { h value }
     },
     enumeration: {
-      presenter: -> { h value }  
+      presenter: -> { h value }
+    },
+    number_enumeration: {
+      storage: Float,
+      presenter: -> { h value },
+      editor: :enumeration
     },
   }
 end
