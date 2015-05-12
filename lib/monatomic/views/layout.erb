@@ -28,9 +28,11 @@
         <li><a href="/users/<%= current_user.id %>/edit"><%= t(:welcome) % h(current_user.name) %></a></li>
         <li><a href="/_logout"><%= t :sign_out %></a></li>
       </ul>
+      <% if @model %>
       <form class="navbar-form navbar-right" method="get" action="<%= path_for %>">
-        <input type="text" class="form-control" name="search" placeholder="Search <%= @model.search_fields.map { |e| t @model.fields[e] }.join(", ") if @model %>" value="<%= h params[:search] %>">
+        <input type="search" class="form-control" id="_search" name="search" placeholder="Search <%= @model.search_fields.map { |e| t @model.fields[e] }.join(", ") if @model %>" value="<%= h params[:search] %>" style="width: 200px;">
       </form>
+      <% end %>
     </div>
   </div>
 </nav>

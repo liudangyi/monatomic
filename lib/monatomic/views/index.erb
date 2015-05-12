@@ -18,7 +18,7 @@
 <thead>
   <tr>
     <% @columns.each do |field| %>
-    <th><%= t field %></th>
+    <th><a href="<%= path_for(sort: field.name == params[:sort] ? "-#{field.name}" : field.name) %>" style="color: #000;"><%= t field %></a></th>
     <% end %>
     <th style="width: 150px;"><%= t :actions %></th>
   </tr>
@@ -59,11 +59,11 @@
 <% if pages.count > 1 %>
 <nav class="pull-right">
   <ul class="pagination">
-    <li><a href="<%= path_for(search: params[:search], page: 1) %>" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+    <li><a href="<%= path_for(page: 1) %>" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
     <% pages.each do |p| %>
-    <li class="<%= 'active' if p == page %>"><a href="<%= path_for(search: params[:search], page: p) %>"><%= p %></a></li>
+    <li class="<%= 'active' if p == page %>"><a href="<%= path_for(page: p) %>"><%= p %></a></li>
     <% end %>
-    <li><a href="<%= path_for(search: params[:search], page: total_page) %>" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>
+    <li><a href="<%= path_for(page: total_page) %>" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>
   </ul>
 </nav>
 <% end %>

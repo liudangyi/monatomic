@@ -22,7 +22,7 @@ module Monatomic
       }[target]
       raise ArgumentError if ability.nil?
       if resource.method("#{ability}?").call current_user, field
-        presenter = field.options[target]
+        presenter = field.options[target] || field.options[:display_type]
         if field.is_a? Mongoid::Fields::ForeignKey
           value = resource.send(field.name.sub(/_id\Z/, ""))
         else
@@ -61,6 +61,9 @@ module Monatomic
         options.reject! { |k, v| v.blank? }
       else
         options = {}
+      end
+      [:sort, :search].each do |e|
+        options[e] ||= params[e] if params[e]
       end
       arguments.unshift(@model.name.tableize) if @model
       base = "/" + arguments.join("/")

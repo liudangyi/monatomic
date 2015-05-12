@@ -7,6 +7,7 @@ class User
   set display_name: "用户"
   set represent_field: -> { name + " (" + uid + ")" }
   set display_fields: %w[ uid name roles created_by_id created_at ]
+  set search_fields: %w[ uid name ]
 
   set writable: -> (user) { user.is(:admin) or id == user.id }
   set deletable: false

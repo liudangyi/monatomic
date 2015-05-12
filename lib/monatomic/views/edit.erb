@@ -12,8 +12,8 @@
   <div class="alert alert-danger">
     <p><%= @resource.errors.count %> <%= "error".pluralize(@resource.errors.count) %> prohibited this resource from being saved:</p>
     <ul>
-    <% @resource.errors.full_messages.each do |message| %>
-      <li><%= message %></li>
+    <% @resource.errors.each do |k, message| %>
+      <li><%= t @model.fields[k.to_s] %> <%= message %></li>
     <% end %>
     </ul>
   </div>

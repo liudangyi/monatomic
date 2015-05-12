@@ -86,12 +86,14 @@ Monatomic::Application.class_exec do
       unless @resource.writable? current_user, k
         @resource.errors.add(k, t(:not_allowed) % v)
       end
+      # https://github.com/rails/rails/blob/71c7fd101324046995d8f7e51e78475c0e37ec1a/actionview/lib/action_view/helpers/form_options_helper.rb#L140
+      v.shift if v.is_a? Array
     end
-    @resource.assign_attributes(params["data"])
-    if @resource.valid? and @resource.save
-      session[:flash] = t(:update_successfully) % [t(@model), @resource.display_name]
+    if @resource.errors.empty? and @resource.assign_attributes(params["data"]) and @resource.valid? and @resource.save
+      session[:flash] = t(:update_successfully) % [@model.display_name, @resource.display_name]
       redirect path_for(@resource.id)
     else
+      @resource.assign_attributes(params["data"])
       erb :edit
     end
   end
@@ -106,7 +108,7 @@ Monatomic::Application.class_exec do
   post "/:resources/:id/delete" do
     require_user_and_prepare_resources
     @resource.destroy if @resource.deletable? current_user
-    session[:flash] = t(:delete_successfully) % [t(@model), @resource.display_name]
+    session[:flash] = t(:delete_successfully) % [@model.display_name, @resource.display_name]
     redirect path_for
   end
 
@@ -119,9 +121,31 @@ Monatomic::Application.class_exec do
     @resources = @model && @model.for(current_user)
     halt t(:not_authorized) if @resources.nil?
     if params[:search].present?
-      regs = params[:search].split.map { |e| /#{Regexp.escape(e)}/i }
-      query = @model.search_fields.map { |e| {"$and" => regs.map { |f| {e => f} }}}
-      @resources = @resources.and("$or" => query)
+      available_fields = @model.fields_for(current_user).map(&:name)
+      query = {}
+      params[:search].split.each do |e|
+        if e =~ /:/
+          k, v = e.split(":", 2)
+          query[k] ||= []
+          query[k] << /#{Regexp.escape(v)}/i
+        else
+          @model.search_fields.each do |f|
+            query[f.to_s] ||= []
+            query[f.to_s] << /#{Regexp.escape(e)}/i
+          end
+        end
+      end
+      query = query.map do |k, v|
+        {"$and" => v.map { |e| {k => e} }} if k.in? available_fields
+      end.reject(&:nil?)
+      @resources = @resources.and("$or" => query) if query.present?
+    end
+    if params[:sort].present?
+      if params[:sort][0] == "-"
+        @resources = @resources.order_by(params[:sort][1..-1] => -1)
+      else
+        @resources = @resources.order_by(params[:sort] => 1)
+      end
     end
     @resources = @resources.includes(:created_by)
     return if params[:id].blank?

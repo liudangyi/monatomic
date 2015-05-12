@@ -29,8 +29,12 @@ module Monatomic
     object: { # relation
       storage: Object
     },
-    text: {
-      storage: String
-    }
+    text: {},
+    prompt: {
+      presenter: -> { h value }
+    },
+    enumeration: {
+      presenter: -> { h value }  
+    },
   }
 end

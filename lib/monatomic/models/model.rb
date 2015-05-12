@@ -80,7 +80,7 @@ module Monatomic
           type = options[:type] || :string
           type = type.to_s.downcase if type.is_a? Class
           type = type.to_sym
-          type_info = Types[type]
+          type_info = Types[type].dup
           raise ArgumentError, "type \"#{type}\" must be one of these #{Types.keys.inspect}" if type_info.nil?
           display = nil
           options.delete_if do |k, v|
@@ -95,15 +95,20 @@ module Monatomic
               display = v.to_s
               true
             else
-              false
+              if k.in? Mongoid::Fields::Validators::Macro::OPTIONS
+                false
+              else
+                type_info[k] = v
+                true
+              end
             end
           end
-          options[:default] ||= type_info[:default] || ""
           options[:type] = type_info[:storage] || String
+          options[:default] ||= type_info[:default]
+          options[:default] ||= "" if options[:type] == String
           f = super name, options
-          f.options[:presenter] = type_info[:presenter] || type
-          f.options[:editor] = type_info[:editor] || type
-          f.options[:parser] = type_info[:parser] || type
+          f.options[:display_type] = type
+          f.options.merge!(type_info)
           f.define_singleton_method(:display_name) { display } if display
         end
 
@@ -163,8 +168,8 @@ module Monatomic
 
         # Get a query of readable records
         HELPER_MESSAGE = """Please note that model-based :readable proc \
-  is not executed within a special record. You should return a mongoid query \
-  or a boolean value where true means all and false means none."""
+is not executed within a special record. You should return a mongoid query \
+or a boolean value where true means all and false means none."""
         def for(user)
           queries = []
           return nil if acl[:default][:readable] == false
@@ -221,7 +226,7 @@ module Monatomic
         end
 
         def represent_field
-          fields.keys.select { |e| e[0] != "_" }.first || :id
+          fields.keys[4] || :id
         end
 
         def display_fields

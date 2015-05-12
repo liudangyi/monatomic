@@ -29,6 +29,7 @@ module Monatomic
 
     configure :development do
       Moped.logger.level = 0
+      set :run, true
       begin
         require "sass"
         require "coffee_script"
