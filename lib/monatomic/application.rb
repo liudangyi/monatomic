@@ -30,6 +30,7 @@ module Monatomic
     configure :development do
       Moped.logger.level = 0
       set :run, true
+      set :session_secret, "development_secret"
       begin
         require "sass"
         require "coffee_script"

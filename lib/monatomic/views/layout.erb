@@ -25,7 +25,7 @@
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="/users/<%= current_user.id %>/edit"><%= t(:welcome) % h(current_user.name) %></a></li>
+        <li><a href="/user/<%= current_user.id %>/edit"><%= t(:welcome) % h(current_user.name) %></a></li>
         <li><a href="/_logout"><%= t :sign_out %></a></li>
       </ul>
       <% if @model %>
