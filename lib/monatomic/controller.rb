@@ -156,7 +156,7 @@ Monatomic::Application.class_exec do
         f = fields[k]
         if f.nil?
           session[:alert] = t(:wrong_search_query_with_no_field) % [params[:search], k]
-          redirect path_for(search: "")
+          redirect back
         elsif f.type == String
           {"$and" => v.map { |e| {k => /#{Regexp.escape(e)}/i} }}
         else
@@ -167,7 +167,7 @@ Monatomic::Application.class_exec do
         @resources = @resources.and("$or" => query) if query.present?
       rescue ArgumentError => e
         session[:alert] = t(:wrong_search_query_with_error) % [params[:search], e.message]
-        redirect path_for(search: "")
+        redirect back
       end
     end
     params[:sort] = @model.default_sort if params[:sort].blank?

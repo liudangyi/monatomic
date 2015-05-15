@@ -22,7 +22,7 @@
 <thead>
   <tr>
     <% @columns.each do |field| %>
-    <th><a href="<%= path_for(sort: field.name == params[:sort] ? "-#{field.name}" : field.name) %>" style="color: #000;"><%= t field %></a></th>
+    <th class="table-header"><a href="<%= path_for(sort: field.name == params[:sort] ? "-#{field.name}" : field.name) %>" style="color: #000;"><%= t field %></a> <span class="glyphicon glyphicon-search" data-name="<%= field.name %>"></span></th>
     <% end %>
     <th style="width: 150px;"><%= t :actions %></th>
   </tr>
@@ -71,3 +71,13 @@
   </ul>
 </nav>
 <% end %>
+
+<script>
+  $(".glyphicon-search").click(function() {
+    var old = $("#_search").val();
+    if (old.length > 0) {
+      old = old + " ";
+    }
+    $("#_search").val(old + $(this).attr("data-name") + ":").focus();
+  });
+</script>

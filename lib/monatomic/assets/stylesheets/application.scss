@@ -84,7 +84,23 @@ body {
     padding-right: 40px;
     padding-left: 40px;
   }
+  #_search {
+    width: 180px;
+    transition: .2s linear width;
+    &:focus, &.not-empty {
+      width: 360px;
+    }
+  }
 }
 .main .page-header {
   margin-top: 0;
+}
+
+.table-header .glyphicon-search {
+  visibility: hidden;
+  font-size: 0.8em;
+  cursor: pointer;
+}
+.table-header:hover .glyphicon-search {
+  visibility: visible;
 }

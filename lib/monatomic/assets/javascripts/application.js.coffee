@@ -18,3 +18,9 @@ $ ->
   $('input[type="date"]').datepicker
     format: 'yyyy-mm-dd'
     orientation: "top left"
+  $('#_search').change ->
+    $this = $(this)
+    if $this.val().length > 0
+      $this.addClass("not-empty")
+    else
+      $this.removeClass("not-empty")

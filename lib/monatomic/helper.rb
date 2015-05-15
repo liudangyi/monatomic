@@ -71,6 +71,7 @@ module Monatomic
       [:sort, :search].each do |e|
         options[e] = params[e] if params[e].present? and options[e].nil?
       end
+      options.reject! { |k, v| v.blank? }
       arguments.unshift(@model.name.underscore) if @model
       base = "/" + arguments.join("/")
       if format = options.delete(:format)

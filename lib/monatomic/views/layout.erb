@@ -29,8 +29,8 @@
         <li><a href="/_logout"><%= t :sign_out %></a></li>
       </ul>
       <% if @model %>
-      <form class="navbar-form navbar-right" method="get" action="<%= path_for %>">
-        <input type="search" class="form-control" id="_search" name="search" placeholder="Search <%= @model.search_fields.map { |e| t @model.fields[e] }.join(", ") if @model %>" value="<%= h params[:search] %>" style2="width: 300px;">
+      <form class="navbar-form navbar-right" method="get" action="<%= path_for(search: "") %>">
+        <input type="search" class="form-control <%= 'not-empty' if params[:search].present? %>" id="_search" name="search" placeholder="Search <%= @model.search_fields.map { |e| t @model.fields[e] }.join(", ") if @model %>" value="<%= h params[:search] %>" style2="width: 300px;">
       </form>
       <% end %>
     </div>
