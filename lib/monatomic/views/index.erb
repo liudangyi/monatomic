@@ -14,6 +14,10 @@
   <div class="alert alert-success"><%= h session[:flash] %></div>
   <% session.delete(:flash) %>
 <% end %>
+<% if session[:alert] %>
+  <div class="alert alert-danger"><%= h session[:alert] %></div>
+  <% session.delete(:alert) %>
+<% end %>
 <table class="table">
 <thead>
   <tr>
@@ -48,7 +52,7 @@
       <a class="label label-warning" href="<%= path_for resource.id, "edit" %>"><%= t :edit %></a>
       <% end %>
       <% if resource.deletable? current_user %>
-      <a class="label label-danger" href="<%= path_for resource.id, "delete" %>" data-method="post"><%= t :delete %></a>
+      <a class="label label-danger" href="<%= path_for resource.id, "delete" %>" data-method="post" data-confirm="<%= t(:are_you_sure) %>"><%= t :delete %></a>
       <% end %>
     </td>
   </tr>

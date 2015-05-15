@@ -9,6 +9,7 @@ class Post
   set represent_field: :title
   set display_fields: %w[ title hot date created_by_id rate ]
   set search_fields: %w[ title body ]
+  set default_sort: "-updated_at"
 
   field :title, {
     type: :string,

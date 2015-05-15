@@ -22,3 +22,6 @@ en:
   created_at: Created at
   updated_at: Updated at
   created_by_id: Created by
+  are_you_sure: Are you sure?
+  wrong_search_query_with_no_field: 'Wrong search query "%s", %s is not a valid field'
+  wrong_search_query_with_error: 'Wrong search query "%s", the error is: %s'

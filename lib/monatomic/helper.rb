@@ -8,7 +8,7 @@ module Monatomic
       elsif s.respond_to? :name
         h I18n.t s.name
       else
-        h I18n.t s.to_s, *others
+        I18n.t s.to_s, *others
       end
     end
 
@@ -65,12 +65,11 @@ module Monatomic
       options = arguments.last
       if options.is_a? Hash
         arguments.pop
-        options.reject! { |k, v| v.blank? }
       else
         options = {}
       end
       [:sort, :search].each do |e|
-        options[e] ||= params[e] if params[e]
+        options[e] = params[e] if params[e].present? and options[e].nil?
       end
       arguments.unshift(@model.name.underscore) if @model
       base = "/" + arguments.join("/")

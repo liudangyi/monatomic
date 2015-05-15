@@ -27,7 +27,8 @@ module Monatomic
       presenter: -> { value.localtime.to_s(:db) }
     },
     object: { # relation
-      storage: Object
+      storage: Object,
+      presenter: -> { "<a href='#{path_for(search: "#{field.name}:#{value.id}")}'>#{h value.display_name}</a>" if value }
     },
     text: {},
     prompt: {

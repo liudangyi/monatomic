@@ -30,7 +30,7 @@
       </ul>
       <% if @model %>
       <form class="navbar-form navbar-right" method="get" action="<%= path_for %>">
-        <input type="search" class="form-control" id="_search" name="search" placeholder="Search <%= @model.search_fields.map { |e| t @model.fields[e] }.join(", ") if @model %>" value="<%= h params[:search] %>" style="width: 200px;">
+        <input type="search" class="form-control" id="_search" name="search" placeholder="Search <%= @model.search_fields.map { |e| t @model.fields[e] }.join(", ") if @model %>" value="<%= h params[:search] %>" style2="width: 300px;">
       </form>
       <% end %>
     </div>

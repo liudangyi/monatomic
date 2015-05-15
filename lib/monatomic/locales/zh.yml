@@ -23,3 +23,6 @@ zh:
   created_at: 创建时间
   updated_at: 更新时间
   created_by_id: 创建人
+  are_you_sure: 确定吗？
+  wrong_search_query_with_no_field: 搜索指令 %s 不正确，%s 不是一个有效的字段
+  wrong_search_query_with_error: 搜索指令 %s 不正确，错误信息：%s

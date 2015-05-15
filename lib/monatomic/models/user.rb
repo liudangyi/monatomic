@@ -10,7 +10,6 @@ class User
   set search_fields: %w[ uid name ]
 
   set writable: -> (user) { user.is(:admin) or id == user.id }
-  set deletable: false
 
   field :uid, type: :string, validation: [:presence, :uniqueness], display: "用户 ID", writable: :admin
   field :name, type: :string, default: "未设定", display: "姓名"

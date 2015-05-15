@@ -129,10 +129,22 @@ Monatomic::Application.class_exec do
       fields = @model.fields_for(current_user).map { |e| [e.name, e] }.to_h
       query = {}
       params[:search].split.each do |e|
-        if e =~ /:/
-          k, v = e.split(":", 2)
+        if e =~ /(:|<=|>=|>|<|=)/
+          k, v = e.split($1, 2)
           query[k] ||= []
-          query[k] << v
+          query[k] <<
+            case $1
+            when ":", "="
+              v
+            when ">="
+              { "$gte" => v }
+            when "<="
+              { "$lte" => v }
+            when "<"
+              { "$lt" => v }
+            when ">"
+              { "$gt" => v }
+            end
         else
           @model.search_fields.each do |f|
             query[f.to_s] ||= []
@@ -143,21 +155,26 @@ Monatomic::Application.class_exec do
       query = query.map do |k, v|
         f = fields[k]
         if f.nil?
-          nil
+          session[:alert] = t(:wrong_search_query_with_no_field) % [params[:search], k]
+          redirect path_for(search: "")
         elsif f.type == String
           {"$and" => v.map { |e| {k => /#{Regexp.escape(e)}/i} }}
         else
-          { k => v.first }
+          {"$and" => v.map { |e| {k => e} }}
         end
-      end.reject(&:nil?)
-      @resources = @resources.and("$or" => query) if query.present?
-    end
-    if params[:sort].present?
-      if params[:sort][0] == "-"
-        @resources = @resources.order_by(params[:sort][1..-1] => -1)
-      else
-        @resources = @resources.order_by(params[:sort] => 1)
       end
+      begin
+        @resources = @resources.and("$or" => query) if query.present?
+      rescue ArgumentError => e
+        session[:alert] = t(:wrong_search_query_with_error) % [params[:search], e.message]
+        redirect path_for(search: "")
+      end
+    end
+    params[:sort] = @model.default_sort if params[:sort].blank?
+    if params[:sort][0] == "-"
+      @resources = @resources.order_by(params[:sort][1..-1] => -1)
+    else
+      @resources = @resources.order_by(params[:sort] => 1)
     end
     @resources = @resources.includes(:created_by)
     return if params[:id].blank?

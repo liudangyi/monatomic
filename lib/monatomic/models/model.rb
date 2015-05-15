@@ -237,6 +237,10 @@ or a boolean value where true means all and false means none."""
           fields.keys.slice(4, 1)
         end
 
+        def default_sort
+          "-created_at"
+        end
+
       end
 
       include Mongoid::Timestamps
